@@ -28,6 +28,20 @@ def fetch(url, attempts=3):
             time.sleep(10 * (i + 1))  # slow feeds often answer on a retry
 
 
+def details(base):
+    """Affected components and open incidents, from the Statuspage summary."""
+    try:
+        s = json.loads(fetch(base + "/api/v2/summary.json"))
+    except Exception:
+        return ["    - (details unavailable)"]
+    lines = [f"    - Incident: {i['name']} ({i['impact']}, {i['status']})"
+             for i in s.get("incidents", [])]
+    lines += [f"    - {c['name']}: {c['status'].replace('_', ' ')}"
+              for c in s.get("components", [])
+              if c["status"] != "operational" and not c.get("group")]
+    return lines
+
+
 problems = []
 for name, kind, base in APPS:
     try:
@@ -35,6 +49,7 @@ for name, kind, base in APPS:
             status = json.loads(fetch(base + "/api/v2/status.json"))["status"]
             if status["indicator"] != "none":
                 problems.append(f"- **{name}**: {status['description']} ({base})")
+                problems.extend(details(base))
         else:
             fetch(base)
     except Exception as e:
