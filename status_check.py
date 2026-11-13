@@ -1,5 +1,6 @@
 """Daily app status check. Writes report.md only when something is wrong."""
 import json
+import time
 import urllib.request
 
 # "sp"   = Atlassian Statuspage feed at <base>/api/v2/status.json
@@ -15,10 +16,16 @@ APPS = [
 ]
 
 
-def fetch(url):
+def fetch(url, attempts=3):
     req = urllib.request.Request(url, headers={"User-Agent": "app-status-check"})
-    with urllib.request.urlopen(req, timeout=15) as r:
-        return r.read()
+    for i in range(attempts):
+        try:
+            with urllib.request.urlopen(req, timeout=30) as r:
+                return r.read()
+        except Exception:
+            if i == attempts - 1:
+                raise
+            time.sleep(10 * (i + 1))  # slow feeds often answer on a retry
 
 
 problems = []
