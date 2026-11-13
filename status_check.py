@@ -35,5 +35,5 @@ for name, kind, base in APPS:
 
 if problems:
     with open("report.md", "w") as f:
-        f.write("\n".join(problems) + "\n")
+        f.write("@jwilkinson879-alt\n\n" + "\n".join(problems) + "\n")
 print("\n".join(problems) or "All apps operational")
