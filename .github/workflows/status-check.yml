@@ -1,0 +1,21 @@
+name: App status check
+
+on:
+  schedule:
+    - cron: "23 19 * * *"   # 06:23 Sydney (AEDT), 05:23 in winter
+  workflow_dispatch:         # lets you run it by hand
+
+permissions:
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 status_check.py
+      - name: Raise an issue only if something is wrong
+        if: hashFiles('report.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue create --title "App status alert $(date +%F)" --body-file report.md
