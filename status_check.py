@@ -36,9 +36,13 @@ def details(base):
         return ["    - (details unavailable)"]
     lines = [f"    - Incident: {i['name']} ({i['impact']}, {i['status']})"
              for i in s.get("incidents", [])]
-    lines += [f"    - {c['name']}: {c['status'].replace('_', ' ')}"
-              for c in s.get("components", [])
-              if c["status"] != "operational" and not c.get("group")]
+    comps = s.get("components", [])
+    groups = {c["id"]: c["name"] for c in comps if c.get("group")}
+    for c in comps:
+        if c["status"] != "operational" and not c.get("group"):
+            where = groups.get(c.get("group_id"))
+            label = f"{where} / {c['name']}" if where else c["name"]
+            lines.append(f"    - {label}: {c['status'].replace('_', ' ')}")
     return lines
 
 
